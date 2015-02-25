@@ -1,0 +1,9 @@
+﻿<Window x:Class="Autodesk.ADN.ViewDataDemo.ThumbnailDlg"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ThumbnailDlg" Height="300" Width="300"
+         Icon="../resources/Adsk.ico">
+    <Grid>
+        <Image x:Name="_image" Stretch="Fill"/>
+    </Grid>
+</Window>

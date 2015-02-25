@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	
+    <link type="text/css" rel="stylesheet" href="https://viewing.api.autodesk.com/viewingservice/v1/viewers/style.css">
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js">
+    </script>
+
+    <script  type="text/javascript" src="https://developer.api.autodesk.com/viewingservice/v1/viewers/viewer3D.min.js">
+    </script>
+
+    <script>
+
+        var _viewer;
+
+        ///////////////////////////////////////////////////////////////////////////
+        // On document ready callback
+        //
+        ///////////////////////////////////////////////////////////////////////////
+        $(document).ready(function () {
+
+            //get token and urn from url parameters
+            var token = decodeURIComponent(
+                Autodesk.Viewing.Private.getParameterByName("accessToken"));
+
+            var urn = decodeURIComponent(
+                Autodesk.Viewing.Private.getParameterByName("urn"));
+
+            console.log("Token: " + token);
+            console.log("Urn: " + urn);
+            console.log("File Id: " + atob(urn));
+
+            var viewerElement = document.getElementById(
+                'viewerElement');
+
+            var options = {
+                accessToken: token,
+                env: "AutodeskProduction"
+            };
+
+            Autodesk.Viewing.Initializer(options, function() {
+           
+                getViewablePath(
+                        Autodesk.Viewing.Private.getAuthObject(), 
+                        urn,
+                        null,
+                        function (path, is3d) {
+
+                            if(path){
+
+                                if (is3d) {
+                                    _viewer = new Autodesk.Viewing.Private.GuiViewer3D(
+                                        viewerElement, {});
+                                }
+                                else {
+                                    _viewer = new Autodesk.Viewing.Private.GuiViewer2D(
+                                        viewerElement, {});
+                                }
+
+                                _viewer.initialize();
+
+                                _viewer.addEventListener(
+                                    Autodesk.Viewing.GEOMETRY_LOADED_EVENT,
+                                    onGeometryLoaded);
+
+                                _viewer.load(path);
+                            }
+                        });
+            });
+            
+            // disable default context menu on viewer div 
+            $('#viewerElement').on('contextmenu', function(e) {
+                e.preventDefault();
+            });
+
+            // disable scrolling on DOM document 
+            // while mouse pointer is over viewer area
+            $('#viewerElement').hover(
+                function () {
+                    var x = window.scrollX;
+                    var y = window.scrollY;
+                    window.onscroll = function () {
+                        window.scrollTo(x, y);
+                    };
+                },
+                function () {
+                    window.onscroll = null;
+                }
+            );
+
+            //zoom all on escape
+            $(document).keyup(function (e) {
+                // esc
+                if (e.keyCode == 27) {
+                    zoomAll(_viewer);
+                }
+            });
+        });
+
+        ///////////////////////////////////////////////////////////////////////////
+        // Get 2d or 3d viewable path
+        //
+        ///////////////////////////////////////////////////////////////////////////
+        function getViewablePath(auth, documentId, initialItemId, callback) {
+
+            if (documentId.indexOf('urn:') !== 0)
+                documentId = 'urn:' + documentId;
+
+            Autodesk.Viewing.Document.load(
+                documentId,
+                auth,
+                function (document) {
+
+                    var items = [];
+
+                    if (initialItemId) {
+                        items = Autodesk.Viewing.Document.getSubItemsWithProperties(
+                            document.getRootItem(),
+                            { 'guid': initialItemId },
+                            true);
+                    }
+
+                    if (items.length == 0) {
+
+                        items = Autodesk.Viewing.Document.getSubItemsWithProperties(
+                            document.getRootItem(),
+                            { 'type': 'geometry', 'role': '2d' },
+                            true);
+
+                        if (items.length > 0) {
+
+                            var path2d = document.getViewablePath(items[0]);
+
+                            callback(path2d, false);
+                        }
+                    }
+
+                    if (items.length == 0) {
+
+                        items = Autodesk.Viewing.Document.getSubItemsWithProperties(
+                            document.getRootItem(),
+                            { 'type': 'geometry', 'role': '3d' },
+                            true);
+
+                        if (items.length > 0) {
+
+                            var path3d = document.getViewablePath(items[0]);
+
+                            callback(path3d, true);
+                        }
+                    }
+                },
+                function (error) {
+                    console.log("Error loading document: " + error)
+                    callback(null);
+                }
+            );
+        }
+
+        ///////////////////////////////////////////////////////////////////////////
+        // Zoom on root component
+        //
+        ///////////////////////////////////////////////////////////////////////////
+        function zoomAll(viewer) {
+
+            viewer.getObjectTree(function (rootComponent) {
+
+                viewer.docstructure.handleAction(
+                    ["focus"],
+                    rootComponent.dbId);
+            });
+        }
+
+        ///////////////////////////////////////////////////////////////////////////
+        // Geometry Loaded event
+        //
+        ///////////////////////////////////////////////////////////////////////////
+        function onGeometryLoaded(event) {
+           
+            _viewer.removeEventListener(
+                Autodesk.Viewing.GEOMETRY_LOADED_EVENT,
+                onGeometryLoaded);
+
+            zoomAll(_viewer);
+        };
+       
+    </script>
+ 
+</head>
+
+<body>
+
+   <div id="viewerElement" style="height:100%;">
+           
+   </div>
+
+</body>
+</html>
