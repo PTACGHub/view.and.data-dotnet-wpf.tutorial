@@ -61,7 +61,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
             string clientKey,
             string secretKey,
             bool autoRefresh = true)
-        {
+        { 
             _clientKey = clientKey;
 
             _secretKey = secretKey;
@@ -70,7 +70,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
 
             TokenResponse = new TokenResponse();
 
-            _restClient = new RestClient(serviceUrl);
+            _restClient = new RestClient(serviceUrl);     
         }
 
         /////////////////////////////////////////////////////////////////////////////////
@@ -100,7 +100,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
         private Task<TokenResponse> GetAccessTokenAsync()
         {
             var request = new RestRequest(
-                "authentication/v1/authenticate",
+                "authentication/v1/authenticate", 
                 Method.POST);
 
             request.AddParameter("client_id", _clientKey);
@@ -139,7 +139,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
                     if (OnTokenRefreshed != null)
                         OnTokenRefreshed(TokenResponse);
                 }
-
+                
             }).Start();
 
             TokenResponse = tokenResponse;
@@ -161,8 +161,8 @@ namespace Autodesk.ADN.Toolkit.ViewData
             request.AddHeader("Authorization", "Bearer " + TokenResponse.AccessToken);
             request.AddHeader("Content-Type", "application/json");
 
-            request.AddParameter("application/json",
-                bucketData.ToJsonString(),
+            request.AddParameter("application/json", 
+                bucketData.ToJsonString(), 
                 ParameterType.RequestBody);
 
             return _restClient.ExecuteAsync
@@ -178,7 +178,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
            string bucketKey)
         {
             var request = new RestRequest(
-                "oss/v1/buckets/" + bucketKey.ToLower() + "/details",
+                "oss/v1/buckets/" + bucketKey.ToLower() + "/details", 
                 Method.GET);
 
             request.AddHeader("Authorization", "Bearer " + TokenResponse.AccessToken);
@@ -198,7 +198,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
             string objectKey)
         {
             var request = new RestRequest(
-                "oss/v1/buckets/" + bucketKey + "/objects/" + objectKey + "/details",
+                "oss/v1/buckets/" + bucketKey + "/objects/" + objectKey + "/details", 
                 Method.GET);
 
             request.AddHeader("Authorization", "Bearer " + TokenResponse.AccessToken);
@@ -214,7 +214,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
                 {
                     result.Objects[0].SetFileId(
                         GetFileId(
-                            bucketKey,
+                            bucketKey, 
                             obj.ObjectKey));
                 }
             }
@@ -227,7 +227,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
         //
         /////////////////////////////////////////////////////////////////////////////////
         public Task<ObjectDetailsResponse> UploadFileAsync(
-            string bucketKey,
+            string bucketKey, 
             FileUploadInfo fi)
         {
             string objectKey = Uri.EscapeDataString(fi.Key.Replace(" ", "_"));
@@ -236,14 +236,14 @@ namespace Autodesk.ADN.Toolkit.ViewData
             {
                 RestRequest request = new RestRequest(
                     "oss/v1/buckets/" + bucketKey.ToLower() +
-                    "/objects/" + objectKey,
+                    "/objects/" + objectKey,    
                     Method.PUT);
 
                 request.AddHeader("Authorization", "Bearer " + TokenResponse.AccessToken);
 
                 request.AddParameter("Content-Type", "application/stream");
                 request.AddParameter("Content-Length", fi.Length);
-
+               
                 byte[] fileData = binaryReader.ReadBytes((int)fi.Length);
 
                 request.AddParameter("requestBody", fileData, ParameterType.RequestBody);
@@ -257,18 +257,18 @@ namespace Autodesk.ADN.Toolkit.ViewData
         }
 
         public Task<ObjectDetailsResponse> UploadFileAsync(
-            string bucketKey,
+            string bucketKey, 
             string objectkey,
             string filename)
         {
             RestRequest request = new RestRequest(
                 "oss/v1/buckets/" + bucketKey.ToLower() +
-                "/objects/" + Uri.EscapeDataString(objectkey.Replace(" ", "_")),
+                "/objects/" + Uri.EscapeDataString(objectkey.Replace(" ", "_")),    
                 Method.PUT);
 
             request.AddHeader("Authorization", "Bearer " + TokenResponse.AccessToken);
 
-            request.AddParameter("Content-Type", "application/stream");
+            request.AddParameter("Content-Type", "application/stream");                
 
             request.AddFile("requestBody", filename);
 
@@ -287,26 +287,30 @@ namespace Autodesk.ADN.Toolkit.ViewData
         {
             RestRequest request = new RestRequest(
                 "viewingservice/v1/register",
-                 Method.POST);
+                    Method.POST);
 
             request.AddHeader(
-                "Authorization",
+                "Authorization", 
                 "Bearer " + TokenResponse.AccessToken);
 
             request.AddHeader(
-                "Content-Type",
+                "Content-Type", 
                 "application/json");
+
+            request.AddHeader(
+                "x-ads-force",
+                "true");
 
             string body = "{\"urn\":\"" + fileId.ToBase64() + "\"}";
 
             request.AddParameter(
-                "application/json",
-                body,
+                "application/json", 
+                body, 
                 ParameterType.RequestBody);
 
             return _restClient.ExecuteAsync
-                   <RegisterResponse>(
-                       request);
+                    <RegisterResponse>(
+                        request);
         }
 
         /////////////////////////////////////////////////////////////////////////////////
@@ -329,8 +333,8 @@ namespace Autodesk.ADN.Toolkit.ViewData
                      Method.GET);
 
                 request.AddHeader(
-                    "Authorization",
-                    "Bearer " +
+                    "Authorization", 
+                    "Bearer " + 
                     TokenResponse.AccessToken);
 
                 request.AddParameter("width", width);
@@ -361,7 +365,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
                 }
                 else
                 {
-                    using (MemoryStream ms =
+                    using (MemoryStream ms = 
                         new MemoryStream(httpResponse.RawBytes))
                     {
                         response.Image = Image.FromStream(ms);
@@ -375,7 +379,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
 
             return response;
         }
-
+    
         /////////////////////////////////////////////////////////////////////////////////
         // GET /viewingservice/{apiversion}/{urn}?guid=$GUID$
         // GET /viewingservice/{apiversion}/{urn}/status?guid=$GUID$
@@ -390,7 +394,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
             string optionStr = "";
 
             switch (option)
-            {
+            { 
                 case ViewableOptionEnum.kStatus:
                     optionStr = "/status";
                     break;
@@ -438,6 +442,38 @@ namespace Autodesk.ADN.Toolkit.ViewData
         }
 
         /////////////////////////////////////////////////////////////////////////////////
+        // POST /references/{apiversion}/setreference
+        //
+        /////////////////////////////////////////////////////////////////////////////////
+        public Task<ReferenceResponse> SetReferenceAsync(
+            ReferenceData referenceData)
+        {
+            RestRequest request = new RestRequest(
+                "references/v1/setreference",
+                Method.POST);
+
+            request.AddHeader(
+                "Authorization", 
+                "Bearer " + TokenResponse.AccessToken);
+
+            request.AddHeader(
+                "Content-Type", 
+                "application/json");
+
+            string body = JsonConvert.SerializeObject(
+                referenceData);
+
+            request.AddParameter(
+                "application/json", 
+                body, 
+                ParameterType.RequestBody);
+
+            return _restClient.ExecuteAsync
+                <ReferenceResponse>(
+                    request);
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////
         // Returns file id for bucket and object
         //
         /////////////////////////////////////////////////////////////////////////////////
@@ -451,8 +487,8 @@ namespace Autodesk.ADN.Toolkit.ViewData
         //
         /////////////////////////////////////////////////////////////////////////////////
         async public Task<ViewDataResponseBase> UploadAndRegisterAsync(
-            BucketCreationData bucketData,
-            FileUploadInfo fi,
+            BucketCreationData bucketData, 
+            FileUploadInfo fi, 
             bool waitForTranslation = false,
             bool createBucketIfNotExist = true)
         {
@@ -467,8 +503,8 @@ namespace Autodesk.ADN.Toolkit.ViewData
                     System.Net.HttpStatusCode.NotFound && createBucketIfNotExist)
                 {
                     var bucketCreationResponse = await CreateBucketAsync(bucketData);
-
-                    if (!bucketDetailsResponse.IsOk())
+            
+                    if(!bucketDetailsResponse.IsOk())
                     {
                         return bucketCreationResponse;
                     }
@@ -491,7 +527,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
 
             var registerResponse = await RegisterAsync(fileId);
 
-            if (!registerResponse.IsOk() || !waitForTranslation)
+            if (!registerResponse.IsOk() ||!waitForTranslation)
             {
                 return registerResponse;
             }
@@ -510,7 +546,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
                 }
 
                 else if (viewableResponse.Progress.ToLower() == "complete")
-                    return viewableResponse;
+                    return viewableResponse;       
             }
         }
     }
@@ -560,15 +596,15 @@ namespace Autodesk.ADN.Toolkit.ViewData
                     T viewDataResponse = JsonConvert.DeserializeObject<T>(
                            httpResponse.Content,
                            new JsonSerializerSettings
-                           {
-                               Error = (object sender,
-                                   Newtonsoft.Json.Serialization.ErrorEventArgs args) =>
-                               {
-                                   args.ErrorContext.Handled = true;
+                            {
+                                Error = (object sender,
+                                    Newtonsoft.Json.Serialization.ErrorEventArgs args) =>
+                                {
+                                    args.ErrorContext.Handled = true;
 
-                                   jsonErrors.Add(args);
-                               }
-                           });
+                                    jsonErrors.Add(args);
+                                }
+                            });
 
                     if (jsonErrors.Count != 0)
                     {
