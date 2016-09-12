@@ -106,6 +106,7 @@ namespace Autodesk.ADN.Toolkit.ViewData
             request.AddParameter("client_id", _clientKey);
             request.AddParameter("client_secret", _secretKey);
             request.AddParameter("grant_type", "client_credentials");
+            request.AddParameter("scope", "data:read data:create data:write bucket:read bucket:create");
 
             return _restClient.ExecuteAsync
                 <TokenResponse>(
